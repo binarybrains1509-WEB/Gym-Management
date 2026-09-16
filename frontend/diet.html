@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Diet Plan</title>
+
+  <style>
+    body{
+      background:#0b0b0b;
+      color:#fff;
+      font-family:system-ui;
+      padding:30px;
+    }
+
+    h1{
+      color:#45ffc4;
+      margin-bottom:20px;
+    }
+
+    .diet-card{
+      background:#111;
+      padding:20px;
+      border-radius:14px;
+      margin-bottom:20px;
+      box-shadow:0 0 15px rgba(69,255,196,0.15);
+    }
+
+    .diet-card h3{
+      color:#45ffc4;
+      margin-bottom:6px;
+    }
+
+    .trainer{
+      font-size:14px;
+      opacity:.7;
+      margin-bottom:12px;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:10px;
+    }
+
+    th, td{
+      padding:10px;
+      border-bottom:1px solid #222;
+      text-align:left;
+    }
+
+    th{
+      color:#45ffc4;
+      background:#000;
+    }
+
+    tr:hover{
+      background:#151515;
+    }
+
+    .no-data{
+      opacity:.6;
+      margin-top:30px;
+    }
+
+    .back{
+      background:#222;
+      color:#45ffc4;
+      border:1px solid #45ffc4;
+      padding:8px 14px;
+      border-radius:8px;
+      cursor:pointer;
+      margin-bottom:20px;
+    }
+  </style>
+</head>
+<body>
+
+<button class="back" onclick="goBack()">⬅ Back</button>
+
+<h1>🥗 My Diet Plan</h1>
+
+<div id="dietContainer">
+  <p>Loading diet plan...</p>
+</div>
+
+<script>
+const API = "http://localhost:5000";
+const userId = localStorage.getItem("userId");
+
+if(!userId){
+  alert("Please login first");
+  window.location.href = "../login.html";
+}
+
+/* LOAD DIET */
+async function loadDiet(){
+  const container = document.getElementById("dietContainer");
+
+  try{
+    const res = await fetch(`${API}/user/diets/${userId}`);
+    const diets = await res.json();
+
+    container.innerHTML = "";
+
+    if(!diets.length){
+      container.innerHTML = `
+        <p class="no-data">
+          No diet plan assigned yet 🥗
+        </p>`;
+      return;
+    }
+
+    diets.forEach(d => {
+      container.innerHTML += `
+        <div class="diet-card">
+          <h3>${d.dietTitle}</h3>
+          <div class="trainer">
+            Trainer: ${d.trainer?.name || "-"} 
+            (${d.trainer?.specialization || "General"})
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Food</th>
+                <th>Calories</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${
+                d.meals.map(m => `
+                  <tr>
+                    <td>${m.time}</td>
+                    <td>${m.food}</td>
+                    <td>${m.calories || "-"}</td>
+                  </tr>
+                `).join("")
+              }
+            </tbody>
+          </table>
+        </div>
+      `;
+    });
+
+  }catch(err){
+    container.innerHTML = `
+      <p class="no-data">Failed to load diet ❌</p>
+    `;
+  }
+}
+
+function goBack(){
+  window.history.back();
+}
+
+loadDiet();
+</script>
+
+</body>
+</html>

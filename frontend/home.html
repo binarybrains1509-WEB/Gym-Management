@@ -1,0 +1,525 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xsport-Fitness</title>
+      <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+    <a href="#Home" class="logo"> Xsport<span>Fitness</span></a>
+
+    <i class='bx bx-menu' id="menu-icon"></i>
+    <ul class="navbar">
+        <li><a href ="#home">Home</a></li>
+         <li><a href ="#services">Service</a></li>
+          <li><a href ="#about">About us</a></li>
+          <li><a href ="#plans">Pricing</a></li>
+          <li><a href ="#review">Review</a></li>
+           </ul>
+           <div class="role-dropdown">
+  <button class="btn">Account</button>
+
+  <div class="role-menu">
+    <a href="admin/login.html" id="adminLink">Admin</a>
+    <a href="Trainer/login.html" id="trainerLink">Trainer</a>
+    <a href="login.html" id="loginLink">Login</a>
+    <a href="#" id="logoutLink" onclick="logout()" style="display:none;">Logout</a>
+  </div>
+</div>
+</div>
+
+
+</header> 
+
+<section class="home" id="home">
+    <div class="home-content" data-aos="zoom-in">
+            <h3>Build Your</h3>
+            <h1>Dream Physique</h1>
+            <h3><span class="multiple-text"></span></h3>
+
+            <p>At Xsport Fitness, we believe that fitness is not just about lifting weights — it's about building discipline, confidence, and a stronger version of yourself. Our gym management system ensures seamless membership handling, personalized workout and diet plans, expert trainer guidance, and real-time progress tracking. Whether you're starting your fitness journey or pushing beyond your limits, we provide the structure, support, and motivation you need to transform your body and mindset. Your goals are our priority — and your success is our mission.</p>
+            <a href="signup.html" class="btn">Join us</a>
+
+            
+        </div>
+        <div class="home-img" data-aos="zoom-in">
+                <img src="assest/heroImage.png" alt="Home Image">
+            </div>
+</section>
+<!--service Section-->
+   <!-- Service Section -->
+<section class="services" id="services">
+    <h2 class="heading" data-aos="zoom-in-down">
+        Our<span>Service</span>
+    </h2>
+
+    <div class="services-content" data-aos="zoom-in-up">
+
+        <!-- Each row now has data-service -->
+        <div class="row" data-service="Physical Fitness">
+            <img src="assest/image1.jpg" alt="">
+            <h4>Physical Fitness</h4>
+            <div class="service-action">
+                <button class="service-btn"
+                    onclick="selectService('Physical Fitness')">
+                    Select Service
+                </button>
+            </div>
+        </div>
+
+        <div class="row" data-service="Weight Gain">
+            <img src="assest/image2.jpg" alt="">
+            <h4>Weight Gain</h4>
+            <div class="service-action">
+                <button class="service-btn"
+                    onclick="selectService('Weight Gain')">
+                    Select Service
+                </button>
+            </div>
+        </div>
+
+        <div class="row" data-service="Strength Training">
+            <img src="assest/image3.jpg" alt="">
+            <h4>Strength Training</h4>
+            <div class="service-action">
+                <button class="service-btn"
+                    onclick="selectService('Strength Training')">
+                    Select Service
+                </button>
+            </div>
+        </div>
+
+        <div class="row" data-service="Fat Loss">
+            <img src="assest/image4.jpg" alt="">
+            <h4>Fat Loss</h4>
+            <div class="service-action">
+                <button class="service-btn"
+                    onclick="selectService('Fat Loss')">
+                    Select Service
+                </button>
+            </div>
+        </div>
+
+        <div class="row" data-service="Weight Lifting">
+            <img src="assest/image5.jpg" alt="">
+            <h4>Weight Lifting</h4>
+            <div class="service-action">
+                <button class="service-btn"
+                    onclick="selectService('Weight Lifting')">
+                    Select Service
+                </button>
+            </div>
+        </div>
+
+        <div class="row" data-service="Running">
+            <img src="assest/about.jpg" alt="">
+            <h4>Running</h4>
+            <div class="service-action">
+                <button class="service-btn"
+                    onclick="selectService('Running')">
+                    Select Service
+                </button>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<script>
+
+/* ================= LOAD SELECTED SERVICE ================= */
+async function loadSelectedService(){
+
+  const userId = localStorage.getItem("userId");
+  if(!userId) return;
+
+  try{
+    const res = await fetch(`${API}/api/user/${userId}/service`);
+
+    if(!res.ok) return;
+
+    const data = await res.json();
+
+    if(data.hasService){
+
+      const selected = data.service;
+
+      document.querySelectorAll(".row").forEach(row => {
+
+        const serviceName = row.getAttribute("data-service");
+
+        if(serviceName === selected){
+
+          const actionDiv = row.querySelector(".service-action");
+
+          actionDiv.innerHTML = `
+            <button class="service-btn" disabled>
+              ✔ Service Selected
+            </button>
+
+            <button class="plan-btn workout-btn"
+                onclick="openWorkout()"
+                style="margin-top:8px;">
+                Workout Plan
+            </button>
+          `;
+        }
+      });
+    }
+
+  }catch(err){
+    console.error("Service Load Error:", err);
+  }
+}
+
+
+/* ================= SELECT SERVICE ================= */
+async function selectService(serviceName){
+
+  const userId = localStorage.getItem("userId");
+
+  if(!userId){
+    alert("Please login first");
+    window.location.href="login.html";
+    return;
+  }
+
+  try{
+    const res = await fetch(`${API}/api/user/select-service`,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({
+        userId,
+        service: serviceName
+      })
+    });
+
+    const data = await res.json();
+
+    if(res.ok){
+      alert("Service selected successfully ");
+      loadSelectedService();   // refresh UI
+    }else{
+      alert(data.message || "Service already selected");
+    }
+
+  }catch(err){
+    console.error("Select Service Error:", err);
+    alert("Error selecting service");
+  }
+}
+
+
+/* ================= OPEN WORKOUT ================= */
+function openWorkout(){
+  window.location.href = "workout.html";
+}
+
+
+/* ================= INITIAL LOAD ================= */
+document.addEventListener("DOMContentLoaded", loadSelectedService);
+
+</script>
+
+
+<!-- About Section-->
+<h2>About Us</h2>
+<section class="about" id="about">
+    <div class="about-img" data-aos="zoom-in-down">
+        <img src="assest/about.jpg" alt="">
+
+    </div>
+
+    <div class="about-content" data-aos="zoom-in-up">
+        <h2 class="heading">Why Choose Us?</h2>
+
+        <p>At Xsport Fitness, we don’t just offer workouts — we deliver results. Our gym is built on expert guidance, personalized training plans, and a supportive community that keeps you motivated every step of the way. With certified trainers, structured workout and diet programs, and a smart gym management system, we ensure that your progress is tracked and your goals are achieved efficiently. Whether you're aiming for fat loss, muscle gain, or overall fitness, we provide the right environment, equipment, and mentorship to transform your fitness journey into a success story.</p>
+        <p>We believe fitness is a lifestyle, not a temporary goal. At Xsport Fitness, we create a positive and energetic environment where discipline meets dedication. Our expert trainers, customized plans, and strong community support help you stay consistent and confident. Here, you don’t just join a gym — you join a family that pushes you to become stronger every day.</p>
+        
+    </div>
+</section>
+<script>
+  
+async function selectService(serviceName){
+
+  const userId = localStorage.getItem("userId");
+
+  if(!userId){
+    alert("Please login first");
+    window.location.href="login.html";
+    return;
+  }
+
+  try{
+    const res = await fetch("http://localhost:5000/api/user/select-service",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        userId,
+        service: serviceName
+      })
+    });
+
+    if(res.ok){
+      alert(serviceName + " selected successfully ");
+
+      // Scroll to plans section
+      document.getElementById("plans").scrollIntoView({
+        behavior: "smooth"
+      });
+
+    }else{
+      alert("Failed to select service");
+    }
+
+  }catch(err){
+    console.error(err);
+    alert("Error selecting service");
+  }
+}
+
+</script>
+
+<!--Pricing section-->
+<h2>Our Plans</h2>
+
+<section class="plans" id="plans">
+  <div class="plans-content" id="plansContainer">
+    <p>Loading plans...</p>
+  </div>
+</section>
+
+<script>
+const API = "http://localhost:5000";
+
+async function loadPlans(){
+  const container = document.getElementById("plansContainer");
+  const userId = localStorage.getItem("userId");
+
+  let activePlanId = null;
+
+  // 🔥 Fetch active plan from database
+  if(userId){
+    try{
+      const response = await fetch(`${API}/api/user/${userId}/plan`);
+      const data = await response.json();
+
+      if(data.hasPlan){
+        activePlanId = data.planId;
+      }
+    }catch(err){
+      console.error("Error fetching active plan:", err);
+    }
+  }
+
+  //  Fetch all plans
+  const res = await fetch(`${API}/admin/plans`);
+  const plans = await res.json();
+
+  container.innerHTML = "";
+
+  plans.forEach(p => {
+
+    const purchased = userId && activePlanId === p._id;
+
+    container.innerHTML += `
+      <div class="box">
+        <h3>${p.name}</h3>
+        <h2>₹${p.price} / Month</h2>
+
+        <ul>
+          ${
+            p.features?.length
+              ? p.features.map(f => `<li>${f}</li>`).join("")
+              : "<li>Standard Gym Access</li>"
+          }
+        </ul>
+
+        ${
+          purchased
+          ? `
+            <div class="purchased-box">
+              <div class="purchased-text">✔ Purchased</div>
+
+              <div class="plan-actions">
+                <button class="plan-btn workout-btn" onclick="openWorkout()">
+                  Workout Plan
+                </button>
+
+                <button class="plan-btn diet-btn" onclick="openDiet()">
+                  Diet Plan
+                </button>
+              </div>
+            </div>
+          `
+          : `
+            <button class="join-btn"
+              onclick="handleJoin('${p._id}','${p.name}',${p.price})">
+              Join Now
+            </button>
+          `
+        }
+      </div>
+    `;
+  });
+}
+
+/* OPEN WORKOUT */
+function openWorkout(){
+  window.location.href = "workout.html";
+}
+
+/* OPEN DIET */
+function openDiet(){
+  window.location.href = "diet.html";
+}
+
+/* HANDLE JOIN */
+async function handleJoin(planId, planName, price){
+
+  const userId = localStorage.getItem("userId");
+
+  if(!userId){
+    alert("Please login first");
+    window.location.href = "login.html";
+    return;
+  }
+
+  //  Check active plan from database
+  const response = await fetch(`${API}/api/user/${userId}/plan`);
+  const data = await response.json();
+
+  if(data.hasPlan){
+    alert("You already have an active plan ");
+    return;
+  }
+
+  // Save selected plan temporarily
+  localStorage.setItem("selectedPlanId", planId);
+  localStorage.setItem("selectedPlanName", planName);
+  localStorage.setItem("selectedPrice", price);
+
+  window.location.href = "payment.html";
+}
+
+loadPlans();
+</script>
+
+
+
+
+
+
+<!--Review Section-->
+
+<section class="review" id="review">
+  <div class="review-box">
+
+    <h2 class="heading">
+      Client <span>Reviews</span>
+    </h2>
+
+    <!-- Reviews load here -->
+    <div class="wrapper" id="reviewWrapper">
+      <p style="opacity:0.6;">Loading reviews...</p>
+    </div>
+
+    <div class="give-review-container">
+      <a href="reviewform.html" class="give-review-btn">Give Review</a>
+    </div>
+
+  </div>
+</section>
+
+<script>
+const API_BASE = "http://localhost:5000";
+
+async function loadReviews(){
+  const wrapper = document.getElementById("reviewWrapper");
+
+  try{
+    const res = await fetch(`${API_BASE}/reviews`);
+    const reviews = await res.json();
+
+    wrapper.innerHTML = "";
+
+    if(!reviews.length){
+      wrapper.innerHTML = "<p>No reviews yet</p>";
+      return;
+    }
+
+    reviews.forEach(r => {
+      let stars = "";
+      for(let i = 0; i < r.rating; i++){
+        stars += "<i class='bx bxs-star'></i>";
+      }
+
+      wrapper.innerHTML += `
+        <div class="review-item">
+
+          <div class="img-box">
+            <img 
+              src="http://localhost:5000${r.userImage || '/uploads/default.png'}"
+              alt="User">
+          </div>
+
+          <h2>${r.userName}</h2>
+
+          <div class="line"></div>
+
+          <div class="rating">${stars}</div>
+
+          <p>${r.comment}</p>
+
+        </div>
+      `;
+    });
+
+  }catch(err){
+    console.error(err);
+    wrapper.innerHTML = "<p>Failed to load reviews</p>";
+  }
+}
+
+loadReviews();
+</script>
+
+  
+                <!--Footer Section-->
+
+        <footer class="footer">
+            <div class="social">
+                <a href="#"><i class='bx bxl-facebook-square' ></i></a>
+                <a href="#"><i class='bx bxl-instagram' ></i></a>
+                <a href="#"><i class='bx bxl-linkedin-square' ></i></a>
+            </div>
+        </div>
+              
+
+            <p class="copyright">
+                &copy; Xsport Fitness 2025 - All Rights Reserved
+            </p>
+        </footer>
+
+    </section>
+
+      <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script>
+    AOS.init({
+        offset:300,
+        duration:1400,
+    });
+  </script>
+<script src="https://unpkg.com/typed.js@2.1.0/dist/typed.umd.js"></script>
+<script src="script.js"></script>
+
+
+        
+</body>
+</html>

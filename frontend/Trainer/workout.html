@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Trainer | Add Workout</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:system-ui;
+}
+
+body{
+  min-height:100vh;
+  color:#fff;
+  padding:40px;
+
+  /* 🔥 SINGLE WORKOUT BACKGROUND */
+  background:
+    linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.65)),
+    url("https://images.unsplash.com/photo-1599058917212-d750089bc07e");
+  background-size:cover;
+  background-position:center;
+  background-attachment:fixed;
+}
+
+/* BACK BUTTON */
+.back{
+  background:rgba(0,0,0,0.6);
+  color:#45ffc4;
+  border:1px solid #45ffc4;
+  padding:8px 20px;
+  border-radius:25px;
+  cursor:pointer;
+  margin-bottom:25px;
+  transition:0.3s ease;
+}
+
+.back:hover{
+  background:#45ffc4;
+  color:#000;
+}
+
+/* TITLE */
+h1{
+  text-align:center;
+  font-size:36px;
+  margin-bottom:30px;
+  color:#45ffc4;
+  text-shadow:0 0 12px rgba(69,255,196,0.8);
+}
+
+/* FORM BOX */
+.box{
+  background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(12px);
+  padding:30px;
+  border-radius:25px;
+  max-width:800px;
+  margin:auto;
+  box-shadow:0 0 35px rgba(69,255,196,0.3);
+  border:1px solid rgba(69,255,196,0.3);
+}
+
+label{
+  display:block;
+  margin:15px 0 6px;
+  opacity:.85;
+  font-weight:500;
+}
+
+input, textarea, select{
+  width:100%;
+  padding:12px;
+  background:#111;
+  border:1px solid #333;
+  color:#fff;
+  border-radius:10px;
+  transition:0.3s ease;
+}
+
+input:focus, textarea:focus, select:focus{
+  border-color:#45ffc4;
+  box-shadow:0 0 10px rgba(69,255,196,0.6);
+  outline:none;
+}
+
+textarea{
+  resize:none;
+}
+
+/* BUTTONS */
+button{
+  margin-top:15px;
+  padding:10px 20px;
+  background:linear-gradient(135deg,#45ffc4,#2de0a8);
+  border:none;
+  border-radius:25px;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.3s ease;
+}
+
+button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(69,255,196,0.5);
+}
+
+/* EXERCISE ROW */
+.exercise{
+  display:flex;
+  gap:10px;
+  margin-bottom:12px;
+}
+
+.exercise input{
+  flex:1;
+}
+
+.remove{
+  background:#ff4d4d;
+  color:#fff;
+  border-radius:12px;
+  padding:0 12px;
+}
+
+.remove:hover{
+  background:#ff1f1f;
+}
+</style>
+</head>
+
+<body>
+
+<button class="back" onclick="goHome()">⬅ Back</button>
+
+<h1>🏋️ Workout Management</h1>
+
+<div class="box">
+
+  <label>Select User</label>
+  <select id="userSelect">
+    <option>Loading users...</option>
+  </select>
+
+  <label>Workout Title</label>
+  <input id="title" placeholder="e.g. Chest Day">
+
+  <label>Exercises</label>
+  <div id="exerciseList"></div>
+
+  <button onclick="addExercise()">➕ Add Exercise</button>
+
+  <label>Notes</label>
+  <textarea id="notes" rows="3" placeholder="Optional notes"></textarea>
+
+  <button onclick="submitWorkout()">Save Workout</button>
+</div>
+
+<script>
+const API = "http://localhost:5000";
+const trainerId = localStorage.getItem("trainerId");
+
+if(!trainerId){
+  alert("Login first ");
+  window.location.href="login.html";
+}
+
+function goHome(){
+  window.location.href="index.html";
+}
+
+async function loadUsers(){
+  const res = await fetch(`${API}/trainer/assigned-users/${trainerId}`);
+  const data = await res.json();
+  const select = document.getElementById("userSelect");
+  select.innerHTML = "";
+
+  const accepted = data.filter(u => u.status === "accepted");
+
+  if(!accepted.length){
+    select.innerHTML = `<option>No accepted users</option>`;
+    return;
+  }
+
+  accepted.forEach(item => {
+    select.innerHTML += `
+      <option value="${item.user._id}">
+        ${item.user.name} (${item.user.email})
+      </option>
+    `;
+  });
+}
+
+function addExercise(){
+  const div = document.createElement("div");
+  div.className = "exercise";
+
+  div.innerHTML = `
+    <input placeholder="Exercise name">
+    <input type="number" placeholder="Sets">
+    <input type="number" placeholder="Reps">
+    <button class="remove" onclick="this.parentElement.remove()">✖</button>
+  `;
+
+  document.getElementById("exerciseList").appendChild(div);
+}
+
+async function submitWorkout(){
+  const userId = document.getElementById("userSelect").value;
+  const title = document.getElementById("title").value.trim();
+  const notes = document.getElementById("notes").value.trim();
+
+  if(!userId || !title){
+    alert("User and workout title required");
+    return;
+  }
+
+  const exercises = [];
+  document.querySelectorAll(".exercise").forEach(e => {
+    const inputs = e.querySelectorAll("input");
+    if(inputs[0].value){
+      exercises.push({
+        name: inputs[0].value,
+        sets: Number(inputs[1].value),
+        reps: Number(inputs[2].value)
+      });
+    }
+  });
+
+  if(!exercises.length){
+    alert("Add at least one exercise");
+    return;
+  }
+
+  const body = {
+    trainer: trainerId,
+    user: userId,
+    workoutTitle: title,
+    exercises,
+    notes
+  };
+
+  const res = await fetch(`${API}/trainer/workouts`,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(body)
+  });
+
+  if(res.ok){
+    alert("Workout saved ✅");
+    document.getElementById("exerciseList").innerHTML="";
+    document.getElementById("title").value="";
+    document.getElementById("notes").value="";
+    addExercise();
+  }else{
+    alert("Failed to save workout ");
+  }
+}
+
+addExercise();
+loadUsers();
+</script>
+
+</body>
+</html>

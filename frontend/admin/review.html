@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin | Reviews</title>
+
+<style>
+body{
+  margin:0;
+  font-family:system-ui;
+  background:
+    linear-gradient(rgba(0,0,0,.85),rgba(0,0,0,.85)),
+    url("https://images.unsplash.com/photo-1558611848-73f7eb4001a1");
+  background-size:cover;
+  background-position:center;
+  background-attachment:fixed;
+  color:#fff;
+  padding:40px;
+}
+
+/* HEADER SECTION */
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:30px;
+}
+
+h1{
+  color:#45ffc4;
+  font-size:32px;
+  margin:0;
+}
+
+/* BACK BUTTON */
+.back-btn{
+  background:#111;
+  border:1px solid #45ffc4;
+  color:#45ffc4;
+  padding:8px 16px;
+  border-radius:20px;
+  cursor:pointer;
+  font-weight:600;
+  transition:.3s;
+}
+
+.back-btn:hover{
+  background:#45ffc4;
+  color:#000;
+}
+
+/* GLASS TABLE CONTAINER */
+.table-box{
+  backdrop-filter:blur(12px);
+  background:rgba(0,0,0,.7);
+  border-radius:15px;
+  padding:20px;
+  box-shadow:0 0 30px rgba(0,255,196,.2);
+}
+
+/* TABLE */
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th, td{
+  padding:15px;
+  text-align:left;
+  border-bottom:1px solid #222;
+}
+
+th{
+  color:#45ffc4;
+  background:#000;
+}
+
+tr:hover{
+  background:#1a1a1a;
+  transition:.2s;
+}
+
+/* IMAGE */
+img{
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid #45ffc4;
+}
+
+/* DELETE BUTTON */
+.delete-btn{
+  background:#ff4d4d;
+  border:none;
+  color:#fff;
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  transition:.3s;
+}
+
+.delete-btn:hover{
+  background:#ff1f1f;
+  transform:scale(1.05);
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🛠️ Manage Reviews</h1>
+  <button class="back-btn" onclick="goBack()">⬅ Back</button>
+</div>
+
+<div class="table-box">
+<table>
+  <thead>
+    <tr>
+      <th>Image</th>
+      <th>User</th>
+      <th>Rating</th>
+      <th>Comment</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody id="reviewTable">
+    <tr><td colspan="5">Loading reviews...</td></tr>
+  </tbody>
+</table>
+</div>
+
+<script>
+const API_BASE = "http://localhost:5000";
+
+function goBack(){
+  window.location.href = "index.html"; // change if needed
+}
+
+async function loadReviews(){
+  const table = document.getElementById("reviewTable");
+
+  try{
+    const res = await fetch(`${API_BASE}/reviews`);
+    const reviews = await res.json();
+
+    table.innerHTML = "";
+
+    if(!reviews.length){
+      table.innerHTML = "<tr><td colspan='5'>No reviews found</td></tr>";
+      return;
+    }
+
+    reviews.forEach(r => {
+      let stars = "⭐".repeat(r.rating || 0);
+
+      table.innerHTML += `
+        <tr>
+          <td>
+            <img src="${r.userImage 
+              ? API_BASE + r.userImage 
+              : API_BASE + '/uploads/default.png'}">
+          </td>
+          <td>${r.userName || "Unknown"}</td>
+          <td>${stars}</td>
+          <td>${r.comment || "-"}</td>
+          <td>
+            <button class="delete-btn" onclick="deleteReview('${r._id}')">
+              Delete
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+
+  }catch(err){
+    table.innerHTML = "<tr><td colspan='5'>Failed to load reviews</td></tr>";
+  }
+}
+
+async function deleteReview(id){
+  if(!confirm("Are you sure you want to delete this review?")) return;
+
+  try{
+    const res = await fetch(`${API_BASE}/admin/reviews/${id}`,{
+      method:"DELETE"
+    });
+
+    const data = await res.json();
+
+    if(!res.ok){
+      alert(data.error || "Delete failed");
+      return;
+    }
+
+    alert(" Review deleted");
+    loadReviews();
+
+  }catch(err){
+    alert("Server error");
+  }
+}
+
+loadReviews();
+</script>
+
+</body>
+</html>

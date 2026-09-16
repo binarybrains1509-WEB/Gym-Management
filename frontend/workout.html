@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Workout Plan</title>
+
+  <style>
+    body{
+      background:#0b0b0b;
+      color:#fff;
+      font-family:system-ui;
+      padding:30px;
+    }
+
+    h1{
+      color:#45ffc4;
+      margin-bottom:20px;
+    }
+
+    .card{
+      background:#111;
+      padding:20px;
+      border-radius:14px;
+      margin-bottom:20px;
+      border:1px solid rgba(255,255,255,0.1);
+    }
+
+    .card h2{
+      color:#45ffc4;
+      margin-bottom:6px;
+    }
+
+    .trainer{
+      font-size:14px;
+      opacity:.7;
+      margin-bottom:12px;
+    }
+
+    ul{
+      margin-left:20px;
+    }
+
+    li{
+      margin:6px 0;
+    }
+
+    .notes{
+      margin-top:10px;
+      font-size:14px;
+      opacity:.85;
+    }
+
+    .back{
+      background:#222;
+      color:#45ffc4;
+      border:1px solid #45ffc4;
+      padding:8px 14px;
+      border-radius:8px;
+      cursor:pointer;
+      margin-bottom:20px;
+    }
+  </style>
+</head>
+<body>
+
+<button class="back" onclick="goBack()">⬅ Back</button>
+
+<h1>🏋️ My Workout Plan</h1>
+
+<div id="workoutList">Loading...</div>
+
+<script>
+const API = "http://localhost:5000";
+const userId = localStorage.getItem("userId");
+
+/*  SECURITY CHECK */
+if(!userId){
+  alert("Login required");
+  window.location.href = "../login.html";
+}
+
+/* BACK */
+function goBack(){
+  window.history.back();
+}
+
+/* LOAD WORKOUTS */
+async function loadWorkouts(){
+  try{
+    const res = await fetch(`${API}/user/workouts/${userId}`);
+    const workouts = await res.json();
+
+    const div = document.getElementById("workoutList");
+    div.innerHTML = "";
+
+    if(!workouts.length){
+      div.innerHTML = "<p>No workout assigned yet</p>";
+      return;
+    }
+
+    workouts.forEach(w => {
+      div.innerHTML += `
+        <div class="card">
+          <h2>${w.workoutTitle}</h2>
+          <div class="trainer">
+            Trainer: ${w.trainer?.name || "Assigned"}
+          </div>
+
+          <ul>
+            ${
+              w.exercises.map(e =>
+                `<li>${e.name} – ${e.sets} sets × ${e.reps} reps</li>`
+              ).join("")
+            }
+          </ul>
+
+          ${
+            w.notes
+            ? `<div class="notes"><b>Notes:</b> ${w.notes}</div>`
+            : ""
+          }
+        </div>
+      `;
+    });
+
+  }catch(err){
+    document.getElementById("workoutList").innerHTML =
+      "<p>Failed to load workouts</p>";
+  }
+}
+
+loadWorkouts();
+</script>
+
+</body>
+</html>

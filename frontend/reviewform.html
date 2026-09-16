@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Give Review</title>
+
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+  <style>
+    body{
+      background:#0b0b0b;
+      color:#fff;
+      font-family:system-ui;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+    }
+
+    .review-form{
+      background:#111;
+      padding:30px;
+      width:360px;
+      border-radius:15px;
+      box-shadow:0 0 20px rgba(0,255,196,0.2);
+    }
+
+    h2{
+      color:#45ffc4;
+      text-align:center;
+      margin-bottom:20px;
+    }
+
+    input, textarea, select{
+      width:100%;
+      padding:10px;
+      margin-bottom:12px;
+      background:#000;
+      border:1px solid #333;
+      color:#fff;
+      border-radius:8px;
+      outline:none;
+    }
+
+    input[type="file"]{
+      background:#111;
+    }
+
+    textarea{
+      resize:none;
+      height:90px;
+    }
+
+    button{
+      width:100%;
+      padding:12px;
+      background:#45ffc4;
+      border:none;
+      border-radius:10px;
+      font-size:16px;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    button:hover{
+      background:#2de0a8;
+    }
+  </style>
+</head>
+<body>
+
+<div class="review-form">
+  <h2>Give Review</h2>
+
+  <input type="text" id="userName" placeholder="Your Name">
+
+  <select id="rating">
+    <option value="">Select Rating</option>
+    <option value="5">⭐⭐⭐⭐⭐</option>
+    <option value="4">⭐⭐⭐⭐</option>
+    <option value="3">⭐⭐⭐</option>
+    <option value="2">⭐⭐</option>
+    <option value="1">⭐</option>
+  </select>
+
+  <!-- IMAGE UPLOAD -->
+  <input type="file" id="userImage" accept="image/*">
+
+  <textarea id="comment" placeholder="Write your review..."></textarea>
+
+  <button onclick="submitReview()">Submit Review</button>
+</div>
+
+<script>
+const API_BASE = "http://localhost:5000";
+
+async function submitReview(){
+
+  const userName = document.getElementById("userName").value.trim();
+  const rating  = document.getElementById("rating").value;
+  const comment = document.getElementById("comment").value.trim();
+  const image   = document.getElementById("userImage").files[0];
+
+  //  FRONTEND VALIDATION
+  if (!userName) {
+    alert("Please enter your name");
+    return;
+  }
+
+  if (!rating) {
+    alert("Please select rating");
+    return;
+  }
+
+  if (!comment) {
+    alert("Please write a review");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("userName", userName);
+  formData.append("rating", rating);
+  formData.append("comment", comment);
+
+  if (image) {
+    formData.append("userImage", image);
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/reviews`, {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "Failed to submit review");
+      return;
+    }
+if (!res.ok) {
+  alert(data.error || "Failed to submit review");
+  return;
+}
+
+alert(" Review submitted successfully");
+window.location.href = "home.html";
+
+
+  } catch (err) {
+    console.error(err);
+    alert(" Server error");
+  }
+}
+</script>
+
+</body>
+</html>

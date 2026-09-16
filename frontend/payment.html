@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Payment</title>
+
+  <style>
+    :root{
+      --bg:#000;
+      --card:#111;
+      --text:#fff;
+      --main:#45ffc4;
+    }
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:system-ui;
+    }
+    body{
+      background:var(--bg);
+      color:var(--text);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+    }
+    .payment-box{
+      background:var(--card);
+      width:360px;
+      padding:30px;
+      border-radius:1.2rem;
+      box-shadow:0 0 2rem rgba(69,255,196,0.3);
+      text-align:center;
+    }
+    h2{ margin-bottom:20px; }
+    .info{
+      text-align:left;
+      margin-bottom:20px;
+    }
+    .info p{
+      margin:8px 0;
+      font-size:15px;
+    }
+    .btn{
+      width:100%;
+      padding:14px;
+      background:var(--main);
+      border:none;
+      border-radius:1rem;
+      font-size:16px;
+      font-weight:600;
+      cursor:pointer;
+      transition:0.3s;
+    }
+    .btn:hover{
+      opacity:0.9;
+      transform:translateY(-2px);
+    }
+    .btn:disabled{
+      background:#555;
+      cursor:not-allowed;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="payment-box">
+  <h2>Confirm Payment</h2>
+
+  <div class="info">
+    <p><b>Plan:</b> <span id="planName"></span></p>
+    <p><b>Price:</b> ₹<span id="price"></span></p>
+  </div>
+
+  <button class="btn" id="payBtn" onclick="makePayment()">Pay Now</button>
+</div>
+
+<script>
+const API="http://localhost:5000";
+
+const planId = localStorage.getItem("selectedPlanId");
+const planName = localStorage.getItem("selectedPlanName");
+const price = localStorage.getItem("selectedPrice");
+const userId = localStorage.getItem("userId");
+
+const payBtn = document.getElementById("payBtn");
+
+//  Validate and display plan details
+if(!planId || !planName || !price || !userId){
+  alert("Invalid payment flow. Please select a plan again.");
+  window.location.href="home.html";
+} else {
+  document.getElementById("planName").innerText = planName;
+  document.getElementById("price").innerText = price;
+}
+
+async function makePayment(){
+  payBtn.disabled = true;
+  payBtn.innerText = "Processing...";
+
+  try{
+    const res = await fetch(`${API}/api/payment`,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({
+        userId,
+        planId,
+        planName,
+        amount:Number(price)
+      })
+    });
+
+    if(res.ok){
+      // Save active plan
+      localStorage.setItem("activePlanId",planId);
+
+      // Clear temporary selection
+      localStorage.removeItem("selectedPlanId");
+      localStorage.removeItem("selectedPlanName");
+      localStorage.removeItem("selectedPrice");
+
+      alert("Payment Successful ");
+      window.location.href="home.html";
+    } else {
+      throw new Error("Payment failed");
+    }
+
+  }catch(err){
+    alert("Payment failed  Please try again.");
+    payBtn.disabled = false;
+    payBtn.innerText = "Pay Now";
+  }
+}
+</script>
+
+</body>
+</html>

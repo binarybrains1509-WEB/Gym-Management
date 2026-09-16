@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Trainer | Assigned Users</title>
+
+
+  <style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:system-ui;
+}
+
+body{
+  min-height:100vh;
+  color:#fff;
+  padding:40px;
+
+  background:
+  linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.6)),
+  url("https://images.unsplash.com/photo-1599058917765-a780eda07a3e");
+
+  background-size:cover;
+  background-position:center;
+  background-attachment:fixed;
+}
+
+/* Glass Card Effect */
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:rgba(0,0,0,0.65);
+  backdrop-filter:blur(12px);
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 0 35px rgba(69,255,196,0.25);
+  border:1px solid rgba(69,255,196,0.2);
+}
+
+h1{
+  color:#45ffc4;
+  margin-bottom:25px;
+  font-size:34px;
+  letter-spacing:1px;
+  text-shadow:0 0 15px rgba(69,255,196,0.4);
+}
+
+th, td{
+  padding:16px;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  text-align:left;
+}
+
+th{
+  background:rgba(0,0,0,0.8);
+  color:#45ffc4;
+}
+
+tr:hover{
+  background:rgba(69,255,196,0.08);
+  transition:0.3s ease;
+}
+
+/* Buttons */
+button{
+  padding:7px 14px;
+  border:none;
+  border-radius:20px;
+  font-weight:600;
+  cursor:pointer;
+  margin-right:6px;
+  transition:0.25s ease;
+}
+
+.accept{
+  background:linear-gradient(135deg,#45ffc4,#2de0a8);
+  color:#000;
+}
+
+.reject{
+  background:linear-gradient(135deg,#ff4d4d,#ff1f1f);
+  color:#fff;
+}
+
+.view{
+  background:linear-gradient(135deg,#3fa9f5,#1f8fe5);
+  color:#fff;
+}
+
+button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(0,0,0,0.4);
+}
+
+.status{
+  text-transform:capitalize;
+  font-weight:600;
+}
+
+.pending{ color:#ffa500; }
+.accepted{ color:#45ffc4; }
+.rejected{ color:#ff4d4d; }
+
+/* Back Button */
+.back-btn{
+  background:rgba(0,0,0,0.6);
+  color:#45ffc4;
+  border:1px solid #45ffc4;
+  padding:10px 20px;
+  border-radius:25px;
+  cursor:pointer;
+  margin-bottom:25px;
+  font-weight:600;
+  backdrop-filter:blur(6px);
+  transition:0.3s ease;
+}
+
+.back-btn:hover{
+  background:#45ffc4;
+  color:#000;
+  box-shadow:0 0 20px rgba(69,255,196,0.6);
+}
+
+/* Modal */
+.modal{
+  display:none;
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.75);
+  justify-content:center;
+  align-items:center;
+}
+
+.modal-box{
+  background:rgba(0,0,0,0.8);
+  padding:30px;
+  border-radius:20px;
+  width:420px;
+  box-shadow:0 0 40px rgba(69,255,196,0.4);
+  backdrop-filter:blur(10px);
+}
+
+</style>
+</head>
+<body>
+
+<button class="back-btn" onclick="goHome()">⬅ Back</button>
+
+<h1>👥 Assigned Users</h1>
+
+<table>
+<thead>
+<tr>
+  <th>Name</th>
+  <th>Email</th>
+  <th>Status</th>
+  <th>Action</th>
+</tr>
+</thead>
+
+<tbody id="userTable">
+<tr><td colspan="4">Loading...</td></tr>
+</tbody>
+</table>
+
+<!-- MODAL -->
+<div class="modal" id="viewModal">
+  <div class="modal-box">
+    <h3 style="color:#45ffc4;">User Details</h3>
+    <p><b>Name:</b> <span id="vName"></span></p>
+    <p><b>Email:</b> <span id="vEmail"></span></p>
+    <p><b>Plan:</b> <span id="vPlan"></span></p>
+    <p><b>Price:</b> ₹<span id="vPrice"></span></p>
+    <button onclick="closeView()">Close</button>
+  </div>
+</div>
+
+<script>
+const API = "http://localhost:5000";
+const trainerId = localStorage.getItem("trainerId");
+
+const table = document.getElementById("userTable");
+
+if(!trainerId){
+  alert("Please login first ");
+  window.location.href="login.html";
+}
+
+/* LOAD USERS */
+async function loadUsers(){
+  try{
+    const res = await fetch(`${API}/trainer/assigned-users/${trainerId}`);
+
+    if(!res.ok){
+      throw new Error("API error");
+    }
+
+    const data = await res.json();
+
+    table.innerHTML="";
+
+    /* IF NO USERS */
+    if(!data.length){
+      table.innerHTML = `
+      <tr>
+        <td colspan="4">
+          <div style="
+            text-align:center;
+            padding:40px;
+            color:#888;
+            font-size:18px;">
+            <div style="font-size:50px;">👤</div>
+            <div style="color:#45ffc4; font-weight:600;">
+              No Users Assigned Yet
+            </div>
+            <div style="margin-top:6px;">
+              Once admin assigns users, they will appear here.
+            </div>
+          </div>
+        </td>
+      </tr>
+      `;
+      return;
+    }
+
+    /* SHOW USERS */
+    data.forEach(item=>{
+      const u = item.user;
+      const status = item.status;
+
+      table.innerHTML += `
+      <tr>
+        <td>${u.name}</td>
+        <td>${u.email}</td>
+        <td class="status ${status}">${status}</td>
+        <td>
+          ${
+            status==="pending"
+            ? `
+              <button class="accept" onclick="updateStatus('${u._id}','accepted')">Accept</button>
+              <button class="reject" onclick="updateStatus('${u._id}','rejected')">Reject</button>
+            `
+            : ""
+          }
+          ${
+            status==="accepted"
+            ? `
+              <button class="view" onclick="viewUser('${u._id}')">View</button>
+            `
+            : ""
+          }
+        </td>
+      </tr>
+      `;
+    });
+
+  }catch(err){
+    table.innerHTML = `
+      <tr>
+        <td colspan="4" style="text-align:center;padding:30px;color:red;">
+          Failed to load users 
+        </td>
+      </tr>
+    `;
+  }
+}
+
+/* ACCEPT / REJECT */
+async function updateStatus(userId,status){
+  const res = await fetch(`${API}/trainer/assigned-users/status`,{
+    method:"PUT",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ trainerId,userId,status })
+  });
+
+  if(res.ok){
+    loadUsers();
+  }else{
+    alert("Action failed");
+  }
+}
+
+/* VIEW USER */
+async function viewUser(userId){
+  const res = await fetch(`${API}/trainer/assigned-users/${trainerId}`);
+  const data = await res.json();
+
+  const found = data.find(item=>item.user._id===userId);
+  if(!found) return;
+
+  const user = found.user;
+
+  document.getElementById("vName").innerText=user.name;
+  document.getElementById("vEmail").innerText=user.email;
+
+  if(user.activePlan){
+    document.getElementById("vPlan").innerText=user.activePlan.name;
+    document.getElementById("vPrice").innerText=user.activePlan.price;
+  }else{
+    document.getElementById("vPlan").innerText="No Plan";
+    document.getElementById("vPrice").innerText="-";
+  }
+
+  document.getElementById("viewModal").style.display="flex";
+}
+
+function closeView(){
+  document.getElementById("viewModal").style.display="none";
+}
+
+function goHome(){
+  window.location.href="index.html";
+}
+
+loadUsers();
+</script>
+
+</body>
+</html>

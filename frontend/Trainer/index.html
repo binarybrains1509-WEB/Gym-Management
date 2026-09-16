@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Trainer Dashboard | Xsport Fitness</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:system-ui, sans-serif;
+}
+
+body{
+  background:#000;
+  color:#fff;
+  overflow:hidden;
+}
+
+/* ================= TOPBAR ================= */
+.topbar{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:70px;
+  background:rgba(0,0,0,0.85);
+  backdrop-filter:blur(10px);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 40px;
+  z-index:1000;
+  border-bottom:1px solid rgba(69,255,196,0.2);
+}
+
+.menu-btn{
+  font-size:28px;
+  cursor:pointer;
+  color:#45ffc4;
+  transition:0.3s;
+}
+
+.menu-btn:hover{
+  transform:scale(1.1);
+}
+
+.topbar h2{
+  color:#45ffc4;
+  font-size:1.1rem;
+  letter-spacing:1px;
+}
+
+/* LOGOUT BUTTON */
+.logout-btn{
+  background:linear-gradient(135deg,#ff4d4d,#ff1f1f);
+  border:none;
+  padding:9px 20px;
+  border-radius:30px;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  box-shadow:0 5px 15px rgba(255,77,77,0.4);
+  transition:0.3s ease;
+}
+
+.logout-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(255,77,77,0.6);
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar{
+  position:fixed;
+  top:70px;
+  left:-250px;
+  width:230px;
+  height:calc(100% - 70px);
+  background:#111;
+  padding:25px;
+  transition:0.3s ease;
+  border-right:1px solid rgba(69,255,196,0.2);
+}
+
+.sidebar.active{
+  left:0;
+}
+
+.sidebar h3{
+  color:#45ffc4;
+  margin-bottom:25px;
+  font-size:1.2rem;
+}
+
+.sidebar ul{
+  list-style:none;
+}
+
+.sidebar li{
+  padding:14px;
+  margin-bottom:12px;
+  border-radius:8px;
+  cursor:pointer;
+  transition:0.3s ease;
+  font-size:0.95rem;
+  background:rgba(255,255,255,0.02);
+}
+
+.sidebar li:hover{
+  background:#45ffc4;
+  color:#000;
+  transform:translateX(5px);
+}
+
+/* ================= HERO SECTION ================= */
+.hero{
+  width:100%;
+  height:100vh;
+  margin-top:70px;
+
+  background:
+  linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.8)),
+  url("https://images.unsplash.com/photo-1583454110551-21f2fa2afe61");
+
+  background-size:cover;
+  background-position:center;
+  background-attachment:fixed;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.hero-content{
+  max-width:600px;
+}
+
+.hero-content h1{
+  font-size:3rem;
+  color:#45ffc4;
+  margin-bottom:15px;
+}
+
+.hero-content p{
+  font-size:1rem;
+  opacity:0.8;
+  line-height:1.6;
+}
+</style>
+</head>
+
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <span class="menu-btn" onclick="toggleMenu()">☰</span>
+  <h2>Xsport Fitness – Trainer Panel</h2>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <h3>Dashboard</h3>
+  <ul>
+    <li onclick="go('profile.html')">👤 Profile</li>
+    <li onclick="go('users.html')">👥 Assigned Users</li>
+    <li onclick="go('workout.html')">🏋️ Workout</li>
+    <li onclick="go('diet.html')">🥗 Diet</li>
+  </ul>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-content">
+    <h1>Welcome Trainer 💪</h1>
+    <p>
+     The Trainer Panel serves as a dedicated workspace where trainers manage members, assign workouts, and monitor progress in real time. It enables structured planning, performance tracking, and direct engagement with assigned users. With clear visibility of member plans and training status, trainers can maintain discipline, accountability, and personalized support. Built for efficiency and control, this dashboard enhances both trainer productivity and member transformation.
+    </p>
+  </div>
+</div>
+
+<script>
+function toggleMenu(){
+  document.getElementById("sidebar").classList.toggle("active");
+}
+
+function go(page){
+  window.location.href = page;
+}
+
+function logout(){
+  localStorage.clear();
+  window.location.href = "../home.html";
+}
+</script>
+
+</body>
+</html>

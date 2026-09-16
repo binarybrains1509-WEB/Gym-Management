@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Trainer Profile | Royal Fitness</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:system-ui, sans-serif;
+}
+
+body{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:#fff;
+
+  background:
+  linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.8)),
+  url("https://images.unsplash.com/photo-1579758629938-03607ccdbaba");
+
+  background-size:cover;
+  background-position:center;
+}
+
+/* ===== PROFILE CARD ===== */
+.profile-box{
+  width:420px;
+  padding:40px;
+  border-radius:25px;
+  background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(18px);
+  box-shadow:0 0 50px rgba(69,255,196,0.25);
+  text-align:center;
+  border:1px solid rgba(69,255,196,0.2);
+  transition:0.3s ease;
+}
+
+.profile-box:hover{
+  box-shadow:0 0 70px rgba(69,255,196,0.35);
+}
+
+.profile-box h2{
+  color:#45ffc4;
+  margin-bottom:25px;
+  font-size:1.8rem;
+  letter-spacing:1px;
+}
+
+/* ===== PROFILE IMAGE ===== */
+.profile-img-wrapper{
+  position:relative;
+  display:inline-block;
+}
+
+.profile-img-wrapper img{
+  width:130px;
+  height:130px;
+  border-radius:50%;
+  object-fit:cover;
+  border:3px solid #45ffc4;
+  box-shadow:0 0 25px rgba(69,255,196,0.6);
+  transition:0.3s ease;
+}
+
+.profile-img-wrapper img:hover{
+  transform:scale(1.05);
+}
+
+input[type="file"]{
+  margin-top:15px;
+}
+
+/* ===== FORM ===== */
+label{
+  display:block;
+  text-align:left;
+  margin-top:18px;
+  font-size:14px;
+  opacity:0.8;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  margin-top:6px;
+  background:#111;
+  border:1px solid #333;
+  color:#fff;
+  border-radius:10px;
+  transition:0.3s ease;
+}
+
+input:focus{
+  border-color:#45ffc4;
+  box-shadow:0 0 8px rgba(69,255,196,0.5);
+}
+
+input:disabled{
+  opacity:0.6;
+  cursor:not-allowed;
+}
+
+/* ===== BUTTONS ===== */
+button{
+  width:100%;
+  margin-top:20px;
+  padding:12px;
+  border:none;
+  border-radius:30px;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.3s ease;
+}
+
+#editBtn{
+  background:linear-gradient(135deg,#45ffc4,#2de0a8);
+  color:#000;
+  box-shadow:0 5px 15px rgba(69,255,196,0.4);
+}
+
+#editBtn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(69,255,196,0.6);
+}
+
+#saveBtn{
+  background:linear-gradient(135deg,#3fa9f5,#1f8fe5);
+  color:#fff;
+  box-shadow:0 5px 15px rgba(63,169,245,0.4);
+}
+
+#saveBtn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(63,169,245,0.6);
+}
+
+.hidden{
+  display:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="profile-box">
+  <h2>👤 Trainer Profile</h2>
+
+  <div class="profile-img-wrapper">
+    <img id="profileImg" src="https://via.placeholder.com/130">
+  </div>
+
+  <input type="file" id="profileImage" class="hidden" accept="image/*">
+
+  <label>Name</label>
+  <input id="name" disabled>
+
+  <label>Email</label>
+  <input id="email" disabled>
+
+  <label>Specialization</label>
+  <input id="specialization" disabled>
+
+  <button id="editBtn" onclick="enableEdit()">Edit Profile</button>
+  <button id="saveBtn" class="hidden" onclick="updateProfile()">Update Profile</button>
+</div>
+
+<script>
+const API = "http://localhost:5000";
+const trainerId = localStorage.getItem("trainerId");
+
+if(!trainerId){
+  alert("Please login first ");
+  window.location.href="login.html";
+}
+
+async function loadProfile(){
+  const res = await fetch(`${API}/trainer/profile/${trainerId}`);
+  const t = await res.json();
+
+  if(!res.ok){
+    alert("Failed to load profile");
+    return;
+  }
+
+  document.getElementById("name").value = t.name || "";
+  document.getElementById("email").value = t.email || "";
+  document.getElementById("specialization").value = t.specialization || "";
+
+  document.getElementById("profileImg").src =
+    t.profileImage ? API + t.profileImage :
+    "https://via.placeholder.com/130";
+}
+
+loadProfile();
+
+function enableEdit(){
+  document.getElementById("name").disabled = false;
+  document.getElementById("specialization").disabled = false;
+  document.getElementById("profileImage").classList.remove("hidden");
+  document.getElementById("editBtn").classList.add("hidden");
+  document.getElementById("saveBtn").classList.remove("hidden");
+}
+
+async function updateProfile(){
+  const name = document.getElementById("name").value.trim();
+  const specialization = document.getElementById("specialization").value.trim();
+  const image = document.getElementById("profileImage").files[0];
+
+  if(!name || !specialization){
+    alert("Required fields");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("name",name);
+  formData.append("specialization",specialization);
+  if(image) formData.append("profileImage",image);
+
+  const res = await fetch(`${API}/trainer/profile/${trainerId}`,{
+    method:"PUT",
+    body:formData
+  });
+
+  if(res.ok){
+    alert("Profile updated successfully ");
+    loadProfile();
+    enableViewMode();
+  }else{
+    alert("Update failed ");
+  }
+}
+
+function enableViewMode(){
+  document.getElementById("name").disabled = true;
+  document.getElementById("specialization").disabled = true;
+  document.getElementById("profileImage").classList.add("hidden");
+  document.getElementById("editBtn").classList.remove("hidden");
+  document.getElementById("saveBtn").classList.add("hidden");
+}
+</script>
+
+</body>
+</html>

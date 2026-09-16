@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin | Trainer Management</title>
+
+<style>
+body{
+  margin:0;
+  font-family:system-ui;
+  background:linear-gradient(rgba(0,0,0,.85),rgba(0,0,0,.85)),
+  url("https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b");
+  background-size:cover;
+  background-position:center;
+  color:#fff;
+  padding:40px;
+}
+
+h1{
+  color:#45ffc4;
+  margin-bottom:30px;
+  font-size:32px;
+}
+
+.table-box{
+  backdrop-filter:blur(12px);
+  background:rgba(0,0,0,.7);
+  border-radius:15px;
+  padding:20px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th,td{
+  padding:15px;
+  border-bottom:1px solid #222;
+}
+
+th{
+  color:#45ffc4;
+  text-align:left;
+}
+
+button{
+  padding:8px 14px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.assign-btn{background:#3fa9f5;color:#fff;}
+.delete-btn{background:#ff4d4d;color:#fff;}
+
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.8);
+  justify-content:center;
+  align-items:center;
+}
+
+.modal-box{
+  background:#111;
+  padding:25px;
+  border-radius:12px;
+  width:350px;
+}
+
+select{
+  width:100%;
+  padding:10px;
+  margin:15px 0;
+  background:#000;
+  border:1px solid #333;
+  color:#fff;
+  border-radius:8px;
+}
+</style>
+</head>
+<body>
+
+<h1>🏋️ Trainer Management</h1>
+
+<div class="table-box">
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Email</th>
+<th>Specialization</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="trainerTable">
+<tr><td colspan="4">Loading...</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="modal" id="assignModal">
+<div class="modal-box">
+<h3>Assign User</h3>
+<select id="userSelect"></select>
+<button class="assign-btn" onclick="assignUser()">Assign</button>
+<button onclick="closeAssign()">Cancel</button>
+</div>
+</div>
+
+<script>
+const API="http://localhost:5000";
+let selectedTrainerId=null;
+
+/* LOAD TRAINERS */
+async function loadTrainers(){
+  const table=document.getElementById("trainerTable");
+
+  try{
+    const res=await fetch(`${API}/admin/trainers`);
+    const trainers=await res.json();
+
+    table.innerHTML="";
+
+    if(!trainers.length){
+      table.innerHTML="<tr><td colspan='4'>No trainers found</td></tr>";
+      return;
+    }
+
+    trainers.forEach(t=>{
+      table.innerHTML+=`
+      <tr>
+        <td>${t.name}</td>
+        <td>${t.email}</td>
+        <td>${t.specialization}</td>
+        <td>
+          <button class="assign-btn" onclick="openAssign('${t._id}')">Assign</button>
+          <button class="delete-btn" onclick="deleteTrainer('${t._id}')">Delete</button>
+        </td>
+      </tr>
+      `;
+    });
+
+  }catch{
+    table.innerHTML="<tr><td colspan='4'>Server error</td></tr>";
+  }
+}
+
+/* DELETE TRAINER */
+async function deleteTrainer(id){
+  if(!confirm("Delete trainer?"))return;
+
+  const res=await fetch(`${API}/admin/trainers/${id}`,{
+    method:"DELETE"
+  });
+
+  if(res.ok) loadTrainers();
+  else alert("Delete failed");
+}
+
+/* OPEN ASSIGN MODAL */
+async function openAssign(trainerId){
+  selectedTrainerId=trainerId;
+  document.getElementById("assignModal").style.display="flex";
+
+  try{
+    const res=await fetch(`${API}/admin/all-users`);
+    const users=await res.json();
+
+    const select=document.getElementById("userSelect");
+    select.innerHTML="";
+
+    if(!users.length){
+      select.innerHTML="<option>No users found</option>";
+      return;
+    }
+
+    users.forEach(u=>{
+      select.innerHTML+=`
+      <option value="${u._id}">
+        ${u.name} (${u.email})
+      </option>
+      `;
+    });
+
+  }catch{
+    alert("Failed to load users");
+  }
+}
+
+/* CLOSE MODAL */
+function closeAssign(){
+  document.getElementById("assignModal").style.display="none";
+}
+
+/* ASSIGN USER */
+async function assignUser(){
+  const userId=document.getElementById("userSelect").value;
+
+  try{
+    const res=await fetch(`${API}/admin/trainers/assign`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        trainerId:selectedTrainerId,
+        userId
+      })
+    });
+
+    const data=await res.json();
+
+    if(res.ok){
+      alert("User assigned successfully ");
+      closeAssign();
+    }else{
+      alert(data.error || "Assignment failed ");
+    }
+
+  }catch{
+    alert("Server error ");
+  }
+}
+
+loadTrainers();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Login | Royal Fitness</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:system-ui, -apple-system, sans-serif;
+}
+
+body{
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  /*  BRIGHT GYM BACKGROUND */
+  background:
+    linear-gradient(rgba(0,0,0,0.6),rgba(0,0,0,0.7)),
+    url("https://images.unsplash.com/photo-1599058917212-d750089bc07e");
+  background-size:cover;
+  background-position:center;
+  background-attachment:fixed;
+}
+
+/* LOGIN CARD */
+.login-box{
+  width:380px;
+  padding:40px 30px;
+  border-radius:25px;
+
+  background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(15px);
+
+  border:1px solid rgba(69,255,196,0.3);
+  box-shadow:0 0 40px rgba(69,255,196,0.4);
+
+  text-align:center;
+  transition:0.4s ease;
+}
+
+.login-box:hover{
+  box-shadow:0 0 60px rgba(69,255,196,0.6);
+}
+
+/* HEADING */
+.login-box h2{
+  font-size:32px;
+  margin-bottom:30px;
+  color:#45ffc4;
+  letter-spacing:1px;
+  text-shadow:0 0 12px rgba(69,255,196,0.8);
+}
+
+/* INPUTS */
+.login-box input{
+  width:100%;
+  padding:14px;
+  margin:12px 0;
+  border-radius:12px;
+  border:1px solid #333;
+  background:#111;
+  color:#fff;
+  font-size:15px;
+  transition:0.3s ease;
+}
+
+.login-box input:focus{
+  border-color:#45ffc4;
+  box-shadow:0 0 12px rgba(69,255,196,0.6);
+  outline:none;
+}
+
+/* BUTTON */
+.btn{
+  width:100%;
+  padding:14px;
+  margin-top:20px;
+  border:none;
+  border-radius:30px;
+
+  background:linear-gradient(135deg,#45ffc4,#2de0a8);
+  color:#000;
+  font-size:16px;
+  font-weight:700;
+  cursor:pointer;
+  transition:0.3s ease;
+}
+
+.btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 20px rgba(69,255,196,0.6);
+}
+
+.btn:active{
+  transform:scale(0.95);
+}
+
+/* SMALL FOOTER TEXT */
+.footer-text{
+  margin-top:20px;
+  font-size:12px;
+  opacity:0.6;
+  letter-spacing:1px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="login-box">
+  <h2> Admin Panel</h2>
+
+  <input type="text" placeholder="Username">
+  <input type="password" placeholder="Password">
+
+  <button class="btn" onclick="adminLogin()">Login</button>
+
+  <div class="footer-text">
+    Royal Fitness Management System
+  </div>
+</div>
+
+<script>
+function adminLogin(){
+
+  const username = document.querySelector('input[type="text"]').value.trim();
+  const password = document.querySelector('input[type="password"]').value;
+
+  const ADMIN_USERNAME = "fitness";
+  const ADMIN_PASSWORD = "fit@123";
+
+  if(!username || !password){
+    alert("Please enter username and password");
+    return;
+  }
+
+  if(username === ADMIN_USERNAME && password === ADMIN_PASSWORD){
+    localStorage.setItem("adminLoggedIn", "true");
+    window.location.href = "index.html";
+  }else{
+    alert("Invalid admin credentials ");
+  }
+}
+</script>
+
+</body>
+</html>

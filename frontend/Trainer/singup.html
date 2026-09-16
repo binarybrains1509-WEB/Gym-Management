@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Trainer Signup</title>
+
+<style>
+body{
+  margin:0;
+  font-family:system-ui;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  color:#fff;
+
+  background:
+    linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.7)),
+    url("https://images.unsplash.com/photo-1554284126-aa88f22d8b74");
+  background-size:cover;
+  background-position:center;
+}
+
+.box{
+  background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(12px);
+  padding:40px;
+  width:400px;
+  border-radius:20px;
+  box-shadow:0 0 30px rgba(0,255,196,0.4);
+  text-align:center;
+}
+
+h2{
+  color:#45ffc4;
+  margin-bottom:25px;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border-radius:25px;
+  border:1px solid #333;
+  background:#111;
+  color:#fff;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  margin-top:15px;
+  border-radius:25px;
+  border:none;
+  background:#45ffc4;
+  color:#000;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+button:hover{
+  transform:scale(1.05);
+}
+
+a{
+  color:#45ffc4;
+  text-decoration:none;
+}
+a:hover{
+  text-decoration:underline;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>Trainer Signup</h2>
+
+  <input id="name" placeholder="Full Name">
+  <input id="email" type="email" placeholder="Email">
+  <input id="specialization" placeholder="Specialization">
+  <input id="password" type="password" placeholder="Password">
+
+  <button onclick="signup()">Sign Up</button>
+
+  <p style="margin-top:20px">
+    Already registered? <a href="login.html">Login</a>
+  </p>
+</div>
+
+<script>
+async function signup(){
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const specialization = document.getElementById("specialization").value.trim();
+  const password = document.getElementById("password").value;
+
+  if(!name || !email || !specialization || !password){
+    alert("All fields are required ");
+    return;
+  }
+
+  if(password.length < 6){
+    alert("Password must be at least 6 characters");
+    return;
+  }
+
+  const res = await fetch("http://localhost:5000/api/trainer/signup",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({
+      name,
+      email,
+      specialization,
+      password
+    })
+  });
+
+  const result = await res.json();
+
+  if(!res.ok){
+    alert(result.message || "Signup failed ");
+    return;
+  }
+
+  alert("Signup successful ");
+  window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>

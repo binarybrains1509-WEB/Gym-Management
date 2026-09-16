@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Trainer Login</title>
+
+<style>
+body{
+  margin:0;
+  font-family:system-ui;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  color:#fff;
+
+  background:
+    linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.7)),
+    url("https://images.unsplash.com/photo-1599058917212-d750089bc07e");
+  background-size:cover;
+  background-position:center;
+}
+
+.box{
+  background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(12px);
+  padding:40px;
+  width:380px;
+  border-radius:20px;
+  box-shadow:0 0 30px rgba(0,255,196,0.4);
+  text-align:center;
+}
+
+h2{
+  color:#45ffc4;
+  margin-bottom:25px;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border-radius:25px;
+  border:1px solid #333;
+  background:#111;
+  color:#fff;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  margin-top:15px;
+  border-radius:25px;
+  border:none;
+  background:#45ffc4;
+  color:#000;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+button:hover{
+  transform:scale(1.05);
+}
+
+.signup-link{
+  margin-top:20px;
+  font-size:14px;
+}
+
+.signup-link a{
+  color:#45ffc4;
+  text-decoration:none;
+}
+
+.signup-link a:hover{
+  text-decoration:underline;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>Trainer Login</h2>
+
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+
+  <button onclick="login()">Login</button>
+
+  <div class="signup-link">
+    New trainer? <a href="singup.html">Create an account</a>
+  </div>
+</div>
+
+<script>
+async function login(){
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  const res = await fetch("http://localhost:5000/api/trainer/login",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ email,password })
+  });
+
+  const result = await res.json();
+
+  if(!res.ok){
+    alert(result.message || "Login failed"); 
+    return;
+  }
+
+  localStorage.setItem("trainerId", result.trainerId);
+  window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>

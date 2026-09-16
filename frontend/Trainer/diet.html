@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Trainer | Diet Management</title>
+
+<style>
+body{
+  margin:0;
+  font-family:system-ui;
+  color:#fff;
+  padding:40px;
+  background:
+    linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.8)),
+    url("https://images.unsplash.com/photo-1517836357463-d25dfeac3438");
+  background-size:cover;
+  background-position:center;
+  background-attachment:fixed;
+}
+
+h1{
+  text-align:center;
+  color:#45ffc4;
+  margin-bottom:30px;
+}
+
+.box{
+  background:rgba(0,0,0,0.8);
+  padding:25px;
+  border-radius:20px;
+  max-width:900px;
+  margin:auto;
+  box-shadow:0 0 35px rgba(0,255,196,0.4);
+}
+
+label{display:block;margin-top:12px;opacity:.8}
+
+input,select{
+  width:100%;
+  padding:10px;
+  margin-top:6px;
+  background:#111;
+  border:1px solid #333;
+  color:#fff;
+  border-radius:8px;
+}
+
+button{
+  margin-top:15px;
+  padding:10px 16px;
+  background:#45ffc4;
+  border:none;
+  border-radius:8px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.meal{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+
+.meal input{flex:1}
+
+.table{
+  margin-top:40px;
+  width:100%;
+  border-collapse:collapse;
+  background:rgba(0,0,0,0.7);
+  border-radius:15px;
+  overflow:hidden;
+}
+
+.table th,.table td{
+  padding:14px;
+  border-bottom:1px solid #222;
+}
+
+.table th{color:#45ffc4}
+
+.empty{
+  text-align:center;
+  padding:20px;
+  opacity:.6;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🥗 Diet Plan Management</h1>
+
+<div class="box">
+
+  <label>Select Assigned User</label>
+  <select id="userSelect">
+    <option value="">Loading users...</option>
+  </select>
+
+  <label>Diet Title</label>
+  <input id="dietTitle" placeholder="Fat Loss Diet">
+
+  <label>Meals</label>
+  <div id="mealList"></div>
+  <button onclick="addMeal()">➕ Add Meal</button>
+
+  <button onclick="saveDiet()">Save Diet</button>
+</div>
+
+<table class="table">
+<thead>
+<tr>
+<th>User</th>
+<th>Diet Title</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="dietTable">
+<tr><td colspan="3">Loading...</td></tr>
+</tbody>
+</table>
+
+<script>
+const API="http://localhost:5000";
+const trainerId=localStorage.getItem("trainerId");
+
+if(!trainerId){
+  alert("Login first ");
+  window.location.href="login.html";
+}
+
+let editDietId=null;
+
+/* ================= LOAD ASSIGNED USERS ================= */
+async function loadUsers(){
+  try{
+    const res=await fetch(`${API}/trainer/assigned-users/${trainerId}`);
+    const data=await res.json();
+
+    const select=document.getElementById("userSelect");
+    select.innerHTML="";
+
+    const accepted=data.filter(a=>a.status==="accepted");
+
+    if(!accepted.length){
+      select.innerHTML=`<option value="">No assigned users</option>`;
+      return;
+    }
+
+    accepted.forEach(a=>{
+      select.innerHTML+=`
+        <option value="${a.user._id}">
+          ${a.user.name} (${a.user.email})
+        </option>
+      `;
+    });
+
+  }catch(err){
+    document.getElementById("userSelect").innerHTML=
+      `<option value="">Failed to load users</option>`;
+  }
+}
+
+/* ================= ADD MEAL ================= */
+function addMeal(time="",food="",calories=""){
+  const div=document.createElement("div");
+  div.className="meal";
+  div.innerHTML=`
+    <input placeholder="Time" value="${time}">
+    <input placeholder="Food" value="${food}">
+    <input type="number" placeholder="Calories" value="${calories}">
+    <button onclick="this.parentElement.remove()">✖</button>
+  `;
+  document.getElementById("mealList").appendChild(div);
+}
+
+/* ================= SAVE DIET ================= */
+async function saveDiet(){
+  const user=document.getElementById("userSelect").value;
+  const title=document.getElementById("dietTitle").value.trim();
+
+  if(!user||!title){
+    alert("Required fields ");
+    return;
+  }
+
+  const meals=[];
+  document.querySelectorAll(".meal").forEach(m=>{
+    const i=m.querySelectorAll("input");
+    if(i[0].value){
+      meals.push({
+        time:i[0].value,
+        food:i[1].value,
+        calories:+i[2].value
+      });
+    }
+  });
+
+  if(!meals.length){
+    alert("Add at least one meal ");
+    return;
+  }
+
+  const body={trainer:trainerId,user,dietTitle:title,meals};
+
+  const url=editDietId
+    ? `${API}/trainer/diets/${editDietId}`
+    : `${API}/trainer/diets`;
+
+  const method=editDietId?"PUT":"POST";
+
+  const res=await fetch(url,{
+    method,
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(body)
+  });
+
+  if(res.ok){
+    alert(editDietId?"Updated ":"Saved ");
+    editDietId=null;
+    document.getElementById("mealList").innerHTML="";
+    document.getElementById("dietTitle").value="";
+    addMeal();
+    loadDiets();
+  }else{
+    alert("Operation failed ");
+  }
+}
+
+/* ================= LOAD DIETS ================= */
+async function loadDiets(){
+  try{
+    const res=await fetch(`${API}/trainer/diets/${trainerId}`);
+    const diets=await res.json();
+
+    const table=document.getElementById("dietTable");
+    table.innerHTML="";
+
+    if(!diets.length){
+      table.innerHTML=
+        `<tr><td colspan="3" class="empty">
+          No diet plans created yet
+        </td></tr>`;
+      return;
+    }
+
+    diets.forEach(d=>{
+      table.innerHTML+=`
+        <tr>
+          <td>${d.user.name}</td>
+          <td>${d.dietTitle}</td>
+          <td>
+            <button onclick='editDiet(${JSON.stringify(d)})'>Edit</button>
+            <button onclick="deleteDiet('${d._id}')">Delete</button>
+          </td>
+        </tr>
+      `;
+    });
+
+  }catch(err){
+    document.getElementById("dietTable").innerHTML=
+      `<tr><td colspan="3">Failed to load diets</td></tr>`;
+  }
+}
+
+/* ================= EDIT ================= */
+function editDiet(d){
+  editDietId=d._id;
+  document.getElementById("dietTitle").value=d.dietTitle;
+  document.getElementById("userSelect").value=d.user._id;
+  document.getElementById("mealList").innerHTML="";
+  d.meals.forEach(m=>addMeal(m.time,m.food,m.calories));
+}
+
+/* ================= DELETE ================= */
+async function deleteDiet(id){
+  if(!confirm("Delete diet?"))return;
+
+  await fetch(`${API}/trainer/diets/${id}/${trainerId}`,{
+    method:"DELETE"
+  });
+
+  loadDiets();
+}
+
+/* INIT */
+addMeal();
+loadUsers();
+loadDiets();
+</script>
+
+</body>
+</html>

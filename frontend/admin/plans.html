@@ -1,0 +1,276 @@
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <title>Admin Plans | Xsport Fitness</title>
+
+  <style>
+  body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    color: #fff;
+
+    background:
+      linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)),
+      url("https://images.unsplash.com/photo-1571902943202-507ec2618e8f");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .container {
+    width: 95%;
+    max-width: 1100px;
+    text-align: center;
+  }
+
+  h2 {
+    color:#45ffc4;
+    margin-bottom:30px;
+    font-size:32px;
+  }
+
+  /* Form Card */
+  .form-box {
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(10px);
+    padding: 25px;
+    border-radius: 15px;
+    margin: 0 auto 25px auto;
+    max-width: 500px;
+    box-shadow: 0 0 25px rgba(0,255,196,0.3);
+  }
+
+  input, textarea {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: rgba(0,0,0,0.8);
+    border: 1px solid #333;
+    color: #fff;
+    border-radius: 8px;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition:0.3s;
+  }
+
+  .btn-add {
+    background: #45ffc4;
+    color: #000;
+  }
+  .btn-add:hover { transform: scale(1.05); }
+
+  .btn-cancel {
+    background: #444;
+    color: #fff;
+    margin-left: 10px;
+  }
+
+  /* Back Button (Outside Card) */
+  .back-btn {
+    background:#45ffc4;
+    color:#000;
+    padding:10px 25px;
+    border:none;
+    border-radius:25px;
+    cursor:pointer;
+    font-weight:600;
+    transition:0.3s;
+    margin-bottom:40px;
+  }
+  .back-btn:hover {
+    transform: scale(1.05);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    border-radius: 15px;
+    overflow: hidden;
+  }
+
+  th, td {
+    padding: 12px;
+    border-bottom: 1px solid #333;
+  }
+
+  th {
+    background: #000;
+    color: #45ffc4;
+  }
+
+  .btn-edit {
+    background: #45ffc4;
+    color: #000;
+    margin-right: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-delete {
+    background: #ff4d4d;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+  }
+  </style>
+  </head>
+
+  <body>
+
+  <div class="container">
+
+  <h2>💳 Plans Management</h2>
+
+  <div class="form-box">
+    <h3 id="formTitle">Add New Plan</h3>
+
+    <input id="p_name" placeholder="Plan Name">
+    <input id="p_price" type="number" placeholder="Price">
+    <input id="p_duration" type="number" placeholder="Duration (days)">
+    <textarea id="p_features" placeholder="Features (comma separated)"></textarea>
+
+    <button class="btn btn-add" onclick="savePlan()">Save</button>
+    <button class="btn btn-cancel" onclick="resetForm()">Cancel</button>
+  </div>
+
+  <!--  Back button outside card -->
+  <button class="back-btn" onclick="goBack()">← Back to Home</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Duration</th>
+        <th>Features</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="plans">
+      <tr><td colspan="5">Loading plans...</td></tr>
+    </tbody>
+  </table>
+
+  </div>
+
+  <script>
+  const API_BASE = "http://localhost:5000";
+  let editPlanId = null;
+
+  function goBack() {
+    window.location.href = "index.html";
+  }
+
+  async function loadPlans() {
+    const res = await fetch(`${API_BASE}/admin/plans`);
+    const plans = await res.json();
+
+    const tbody = document.getElementById("plans");
+    tbody.innerHTML = "";
+
+    if (plans.length === 0) {
+      tbody.innerHTML = "<tr><td colspan='5'>No plans found</td></tr>";
+      return;
+    }
+
+    plans.forEach(p => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${p.name}</td>
+          <td>₹${p.price}</td>
+          <td>${p.duration} days</td>
+          <td>${p.features ? p.features.join(", ") : "-"}</td>
+          <td>
+            <button class="btn-edit"
+              onclick="editPlan(
+                '${p._id}',
+                '${p.name}',
+                '${p.price}',
+                '${p.duration}',
+                '${p.features ? p.features.join(", ") : ""}'
+              )">Edit</button>
+            <button class="btn-delete" onclick="deletePlan('${p._id}')">Delete</button>
+          </td>
+        </tr>
+      `;
+    });
+  }
+
+  async function savePlan() {
+    const payload = {
+      name: p_name.value.trim(),
+      price: Number(p_price.value),
+      duration: Number(p_duration.value),
+      features: p_features.value.split(",").map(f => f.trim()).filter(Boolean)
+    };
+
+    if (!payload.name || !payload.price || !payload.duration) {
+      alert("Fill all fields");
+      return;
+    }
+
+    if (editPlanId) {
+      await fetch(`${API_BASE}/admin/plans/${editPlanId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    } else {
+      await fetch(`${API_BASE}/admin/plans`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    resetForm();
+    loadPlans();
+  }
+
+  function editPlan(id, name, price, duration, features) {
+    editPlanId = id;
+    formTitle.innerText = "Update Plan";
+    p_name.value = name;
+    p_price.value = price;
+    p_duration.value = duration;
+    p_features.value = features;
+  }
+
+  async function deletePlan(id) {
+    if (!confirm("Delete this plan?")) return;
+    await fetch(`${API_BASE}/admin/plans/${id}`, { method: "DELETE" });
+    loadPlans();
+  }
+
+  function resetForm() {
+    editPlanId = null;
+    formTitle.innerText = "Add New Plan";
+    p_name.value = "";
+    p_price.value = "";
+    p_duration.value = "";
+    p_features.value = "";
+  }
+
+  loadPlans();
+  </script>
+
+  </body>
+  </html>

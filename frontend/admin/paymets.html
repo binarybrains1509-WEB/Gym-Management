@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Payments | Xsport Fitness</title>
+
+  <style>
+    body{
+      margin:0;
+      padding:30px;
+      font-family: system-ui, sans-serif;
+      background:#0b0b0b;
+      color:#fff;
+    }
+
+    h2{
+      color:#45ffc4;
+      margin-bottom:20px;
+      font-size:2.4rem;
+    }
+
+    .back-btn{
+      margin-bottom:20px;
+      background:transparent;
+      border:1px solid #45ffc4;
+      color:#45ffc4;
+      padding:8px 18px;
+      border-radius:20px;
+      cursor:pointer;
+    }
+
+    .back-btn:hover{
+      background:#45ffc4;
+      color:#000;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      background:#111;
+      border-radius:12px;
+      overflow:hidden;
+    }
+
+    th, td{
+      padding:14px;
+      border-bottom:1px solid #333;
+      text-align:left;
+    }
+
+    th{
+      background:#000;
+      color:#45ffc4;
+      font-size:1.4rem;
+    }
+
+    tr:hover{
+      background:#1a1a1a;
+    }
+
+    .status-success{
+      color:#45ffc4;
+      font-weight:700;
+    }
+
+    .status-failed{
+      color:#ff4d4d;
+      font-weight:700;
+    }
+
+    .amount{
+      font-weight:700;
+    }
+  </style>
+</head>
+
+<body>
+
+<button class="back-btn" onclick="goBack()">← Back</button>
+
+<h2>💳 Payments History</h2>
+  <h3 style="margin:15px 0 25px;">
+  💰 Total Revenue :
+  <span id="totalRevenue" style="color:#45ffc4; font-weight:800;">₹0</span>
+</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>User ID</th>
+      <th>Plan Name</th>
+      <th>Amount</th>
+      <th>Status</th>
+      <th>Payment Date</th>
+    </tr>
+  </thead>
+  <tbody id="payments">
+    <tr><td colspan="5">Loading payments...</td></tr>
+  </tbody>
+</table>
+
+<script>
+const API_BASE = "http://localhost:5000";
+
+/* ===== LOAD PAYMENTS + TOTAL REVENUE ===== */
+async function loadPayments(){
+  const tbody = document.getElementById("payments");
+  const totalBox = document.getElementById("totalRevenue");
+
+  try{
+    const res = await fetch(`${API_BASE}/admin/payments`);
+    const payments = await res.json();
+
+    tbody.innerHTML = "";
+    let totalRevenue = 0;   //  revenue variable
+
+    if(payments.length === 0){
+      tbody.innerHTML = "<tr><td colspan='5'>No payments found</td></tr>";
+      totalBox.innerText = "₹0";
+      return;
+    }
+
+    payments.forEach(p => {
+
+      //  only SUCCESS payments count in revenue
+      if(p.paymentStatus === "success"){
+        totalRevenue += Number(p.amount);
+      }
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${p.userId}</td>
+          <td>${p.planName}</td>
+          <td class="amount">₹${p.amount}</td>
+          <td class="${p.paymentStatus === "success" ? "status-success" : "status-failed"}">
+            ${p.paymentStatus}
+          </td>
+          <td>${new Date(p.paymentDate).toLocaleString()}</td>
+        </tr>
+      `;
+    });
+
+    //  SHOW TOTAL REVENUE
+    totalBox.innerText = `₹${totalRevenue}`;
+
+  }catch(err){
+    console.error(err);
+    tbody.innerHTML = "<tr><td colspan='5'>Failed to load payments</td></tr>";
+    totalBox.innerText = "₹0";
+  }
+}
+
+function goBack(){
+  window.location.href = "index.html";
+}
+
+loadPayments();
+</script>
+
+
+</body>
+</html>
