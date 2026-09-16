@@ -1,12 +1,13 @@
 {
-  "rewrites": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/",
-      "destination": "/frontend/home.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/frontend/$1"
+      "src": "Backend/server.js",
+      "use": "@vercel/node",
+      "config": { "includeFiles": ["frontend/**"] }
     }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "Backend/server.js" }
   ]
 }

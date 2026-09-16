@@ -39,17 +39,17 @@ app.use("/api/user", userRoutes);
 /* ===== SERVE FRONTEND ===== */
 app.use(express.static(path.join(__dirname, "../frontend")));
 
-/* ===== AUTO CREATE UPLOADS FOLDER ===== */
-if (!fs.existsSync("uploads")) {
-  fs.mkdirSync("uploads");
+/* ===== AUTO CREATE UPLOADS FOLDER (Vercel-safe: /tmp) ===== */
+if (!fs.existsSync("/tmp/uploads")) {
+  fs.mkdirSync("/tmp/uploads", { recursive: true });
 }
 
 /* ===== STATIC UPLOADS ===== */
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static("/tmp/uploads"));
 
-/* ===== MULTER CONFIG ===== */
+/* ===== MULTER CONFIG (Vercel-safe: /tmp) ===== */
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
+  destination: (req, file, cb) => cb(null, "/tmp/uploads"),
   filename: (req, file, cb) =>
     cb(null, Date.now() + path.extname(file.originalname))
 });
@@ -400,10 +400,13 @@ app.delete("/admin/users/:id", async (req, res) => {
   }
 });
 
+/* ===== START LOCALLY / EXPORT FOR VERCEL ===== */
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log("Backend server is running");
+    console.log(`Listening on port: ${PORT}`);
+    console.log(`http://localhost:${PORT}`);
+  });
+}
 
-
-app.listen(PORT, () => {
-  console.log(" Backend server is running");
-  console.log(`🌐 Listening on port: ${PORT}`);
-  console.log(` http://localhost:${PORT}`);
-});
+module.exports = app;
